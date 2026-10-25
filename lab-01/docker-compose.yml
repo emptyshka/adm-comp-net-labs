@@ -1,0 +1,68 @@
+name: adm-net-lab01-simple
+
+services:
+  pg-master:
+    build: .
+    image: lab01-postgres:patroni
+    hostname: pg-master
+    command: patroni /etc/patroni/postgres0.yml
+    environment:
+      PATRONI_SUPERUSER_PASSWORD: ${POSTGRES_PASSWORD:?Заполни POSTGRES_PASSWORD в .env}
+      PATRONI_REPLICATION_PASSWORD: ${REPLICATION_PASSWORD:?Заполни REPLICATION_PASSWORD в .env}
+    ports:
+      - "127.0.0.1:5433:5432"
+    expose:
+      - "8008"
+    volumes:
+      - pg-master:/var/lib/postgresql/data
+    depends_on:
+      zoo:
+        condition: service_healthy
+
+  pg-slave:
+    build: .
+    image: lab01-postgres:patroni
+    hostname: pg-slave
+    command: patroni /etc/patroni/postgres1.yml
+    environment:
+      PATRONI_SUPERUSER_PASSWORD: ${POSTGRES_PASSWORD:?Заполни POSTGRES_PASSWORD в .env}
+      PATRONI_REPLICATION_PASSWORD: ${REPLICATION_PASSWORD:?Заполни REPLICATION_PASSWORD в .env}
+    ports:
+      - "127.0.0.1:5434:5432"
+    expose:
+      - "8008"
+    volumes:
+      - pg-slave:/var/lib/postgresql/data
+    depends_on:
+      zoo:
+        condition: service_healthy
+
+  zoo:
+    image: zookeeper:3.9.3
+    environment:
+      ZOO_4LW_COMMANDS_WHITELIST: ruok,srvr
+    volumes:
+      - zoo-data:/data
+      - zoo-datalog:/datalog
+    healthcheck:
+      test: ["CMD-SHELL", "zkServer.sh status"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  haproxy:
+    image: haproxy:3.0
+    ports:
+      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:7000:7000"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - pg-master
+      - pg-slave
+
+volumes:
+  pg-master:
+  pg-slave:
+  zoo-data:
+  zoo-datalog:
