@@ -1,0 +1,97 @@
+name: adm-monitoring
+
+services:
+  nextcloud:
+    image: nextcloud:29.0.6
+    hostname: nextcloud
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - nc-data:/var/www/html/data
+      - nc-config:/var/www/html/config
+    environment:
+      NEXTCLOUD_ADMIN_USER: gaziz
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_PASSWORD:?Заполни .env}
+      NEXTCLOUD_TRUSTED_DOMAINS: localhost 127.0.0.1 nextcloud
+      SQLITE_DATABASE: nextcloud
+
+  loki:
+    image: grafana/loki:2.9.0
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - loki-data:/loki
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - nc-data:/opt/nc_data:ro
+      - ./promtail_config.yml:/etc/promtail/config.yml:ro
+      - promtail-positions:/positions
+    depends_on:
+      - loki
+      - nextcloud
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: gaziz
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?Заполни .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: alexanderzobnin-zabbix-app 4.6.1
+      ZABBIX_PASSWORD: ${ZABBIX_PASSWORD:?Заполни .env}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+  postgres-zabbix:
+    image: postgres:15-bookworm
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Заполни .env}
+    volumes:
+      - zabbix-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "zabbix"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:ubuntu-6.4-latest
+    environment:
+      DB_SERVER_HOST: postgres-zabbix
+      POSTGRES_USER: zabbix
+      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Заполни .env}
+    depends_on:
+      postgres-zabbix:
+        condition: service_healthy
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:ubuntu-6.4-latest
+    ports:
+      - "127.0.0.1:8082:8080"
+    environment:
+      DB_SERVER_HOST: postgres-zabbix
+      ZBX_SERVER_HOST: zabbix-server
+      POSTGRES_USER: zabbix
+      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Заполни .env}
+      PHP_TZ: Europe/Moscow
+    depends_on:
+      - zabbix-server
+
+volumes:
+  nc-data:
+  nc-config:
+  loki-data:
+  promtail-positions:
+  grafana-data:
+  zabbix-db:

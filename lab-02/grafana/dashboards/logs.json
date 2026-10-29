@@ -1,0 +1,99 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "tags": [
+    "Nextcloud",
+    "K3360"
+  ],
+  "description": "Альмухаметов Г.Р., K3360. Локальный стенд на MacBook Pro — Gaziz, Docker.",
+  "uid": "nextcloud-logs",
+  "title": "Nextcloud — логи",
+  "panels": [
+    {
+      "id": 1,
+      "type": "table",
+      "title": "Логи Nextcloud из Loki",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 10
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "nextcloud-loki"
+      },
+      "targets": [
+        {
+          "expr": "{job=\"nextcloud_logs\"} |= \"Login failed\" | json | line_format \"{{.message}}\"",
+          "queryType": "range",
+          "refId": "A",
+          "maxLines": 50
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Время"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 205
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "sortBy": [
+          {
+            "displayName": "Time",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "labels": true,
+              "tsNs": true,
+              "id": true
+            },
+            "renameByName": {
+              "Time": "Время",
+              "Line": "Сообщение"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

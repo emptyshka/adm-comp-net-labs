@@ -1,0 +1,118 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "tags": [
+    "Nextcloud",
+    "K3360"
+  ],
+  "description": "Альмухаметов Г.Р., K3360. Локальный стенд на MacBook Pro — Gaziz, Docker.",
+  "uid": "nextcloud-state",
+  "title": "Nextcloud — состояние",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Состояние Nextcloud",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 12
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "nextcloud-zabbix"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "2",
+          "group": {
+            "filter": "Applications"
+          },
+          "host": {
+            "filter": "Nextcloud"
+          },
+          "application": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Nextcloud: ping service"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "useZabbixValueMapping": false
+          },
+          "schema": 12,
+          "mode": 0,
+          "itemTag": {
+            "filter": ""
+          },
+          "macro": {
+            "filter": ""
+          },
+          "textFilter": "",
+          "itemids": "",
+          "useCaptureGroups": false,
+          "resultFormat": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "healthy": {
+                  "text": "HEALTHY",
+                  "color": "green",
+                  "index": 0
+                },
+                "unhealthy": {
+                  "text": "UNHEALTHY",
+                  "color": "red",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Nextcloud: ping service$/",
+          "values": false
+        }
+      }
+    }
+  ]
+}

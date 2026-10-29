@@ -6,3 +6,4 @@
 ## Лабораторные работы
 
 - [Лабораторная работа № 1. Высокодоступный кластер PostgreSQL](lab-01/README.md)
+- [Loki + Zabbix + Grafana](lab-02/README.md)
