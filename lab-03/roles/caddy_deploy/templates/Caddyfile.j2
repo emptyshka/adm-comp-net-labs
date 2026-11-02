@@ -1,0 +1,22 @@
+{
+    http_port 8083
+    https_port 8443
+    skip_install_trust
+}
+
+http://{{ domain_name }}:8083, http://127.0.0.1:8083 {
+    redir https://{{ domain_name }}:8443{uri} permanent
+}
+
+https://{{ domain_name }}:8443, https://127.0.0.1:8443 {
+    tls internal
+    root * {{ site_root }}
+    file_server
+    header X-Lab-Student "Almukhametov G.R., K3360"
+    header X-Content-Type-Options nosniff
+    log {
+        output file {{ log.file }}
+        format json
+        level {{ log.level }}
+    }
+}

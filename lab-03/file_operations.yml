@@ -1,0 +1,55 @@
+---
+- name: Работа с тестовым файлом
+  hosts: my_servers
+  gather_facts: false
+  tasks:
+    - name: Создать временный файл
+      ansible.builtin.tempfile:
+        state: file
+        prefix: gaziz-ansible-
+        suffix: .txt
+      register: test_file
+
+    - name: Записать первое содержимое
+      ansible.builtin.copy:
+        dest: "{{ test_file.path }}"
+        content: "Первое содержимое файла\n"
+        mode: '0600'
+
+    - name: Прочитать файл
+      ansible.builtin.command: "cat {{ test_file.path }}"
+      changed_when: false
+      register: before
+
+    - name: Показать содержимое
+      ansible.builtin.debug:
+        msg: "{{ before.stdout }}"
+
+    - name: Изменить содержимое файла
+      ansible.builtin.copy:
+        dest: "{{ test_file.path }}"
+        content: "Содержимое изменено через Ansible\n"
+        mode: '0600'
+
+    - name: Прочитать изменённый файл
+      ansible.builtin.command: "cat {{ test_file.path }}"
+      changed_when: false
+      register: after
+
+    - name: Показать новое содержимое
+      ansible.builtin.debug:
+        msg: "{{ after.stdout }}"
+
+    - name: Удалить созданный тестовый файл
+      ansible.builtin.file:
+        path: "{{ test_file.path }}"
+        state: absent
+
+    - name: Проверить отсутствие файла
+      ansible.builtin.stat:
+        path: "{{ test_file.path }}"
+      register: removed
+
+    - name: Показать результат удаления
+      ansible.builtin.debug:
+        msg: "Файл существует: {{ removed.stat.exists }}"

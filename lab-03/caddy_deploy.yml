@@ -1,0 +1,5 @@
+---
+- name: Установка и настройка Caddy
+  hosts: my_servers
+  roles:
+    - caddy_deploy

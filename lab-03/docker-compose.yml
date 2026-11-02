@@ -1,0 +1,14 @@
+name: adm-ansible-caddy
+services:
+  server:
+    build: .
+    hostname: MacBook-Pro---Gaziz
+    ports:
+      - "127.0.0.1:8083:8083"
+      - "127.0.0.1:8443:8443"
+    volumes:
+      - .:/lab:ro
+      - caddy-data:/root/.local/share/caddy
+
+volumes:
+  caddy-data:
